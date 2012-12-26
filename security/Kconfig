@@ -44,6 +44,7 @@ config PAX_SOFTMODE
 config PAX_EI_PAX
 	bool 'Use legacy ELF header marking' if EXPERT
 	help
+	depends on BROKEN
 	  Enabling this option will allow you to control PaX features on
 	  a per executable basis via the 'chpax' utility available at
 	  http://pax.grsecurity.net/.  The control flags will be read from
