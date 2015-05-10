@@ -302,7 +302,7 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 HOSTCC       = gcc
 HOSTCXX      = g++
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
-HOSTCFLAGS   = -W -Wno-unused-parameter -Wno-missing-field-initializers -fno-delete-null-pointer-checks
+HOSTCFLAGS   = -Wno-unused-parameter -Wno-missing-field-initializers -fno-delete-null-pointer-checks
 HOSTCFLAGS  += $(call cc-option, -Wno-empty-body)
 HOSTCXXFLAGS = -O2 -Wall -W -Wno-array-bounds
 
