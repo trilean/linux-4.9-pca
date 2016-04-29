@@ -3172,7 +3172,6 @@ static int shmem_xattr_handler_set(const struct xattr_handler *handler,
 	return simple_xattr_set(&info->xattrs, name, value, size, flags);
 }
 
-#ifdef CONFIG_PAX_XATTR_PAX_FLAGS
 static int shmem_user_xattr_handler_set(const struct xattr_handler *handler,
 					struct dentry *dentry, struct inode *inode,
 					const char *name, const void *value,
@@ -3188,7 +3187,6 @@ static int shmem_user_xattr_handler_set(const struct xattr_handler *handler,
 	name = xattr_full_name(handler, name);
 	return simple_xattr_set(&info->xattrs, name, value, size, flags);
 }
-#endif
 
 static const struct xattr_handler shmem_security_xattr_handler = {
 	.prefix = XATTR_SECURITY_PREFIX,
@@ -3202,13 +3200,11 @@ static const struct xattr_handler shmem_trusted_xattr_handler = {
 	.set = shmem_xattr_handler_set,
 };
 
-#ifdef CONFIG_PAX_XATTR_PAX_FLAGS
 static const struct xattr_handler shmem_user_xattr_handler = {
 	.prefix = XATTR_USER_PREFIX,
 	.get = shmem_xattr_handler_get,
 	.set = shmem_user_xattr_handler_set,
 };
-#endif
 
 static const struct xattr_handler *shmem_xattr_handlers[] = {
 #ifdef CONFIG_TMPFS_POSIX_ACL
@@ -3218,9 +3214,7 @@ static const struct xattr_handler *shmem_xattr_handlers[] = {
 	&shmem_security_xattr_handler,
 	&shmem_trusted_xattr_handler,
 
-#ifdef CONFIG_PAX_XATTR_PAX_FLAGS
 	&shmem_user_xattr_handler,
-#endif
 
 	NULL
 };
