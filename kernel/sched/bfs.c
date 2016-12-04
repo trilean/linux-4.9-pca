@@ -418,8 +418,7 @@ static inline void grq_unlock_irqrestore(unsigned long *flags)
 	raw_spin_unlock_irqrestore(&grq.lock, *flags);
 }
 
-static inline struct rq
-*task_grq_lock(struct task_struct *p, unsigned long *flags)
+struct rq *task_grq_lock(struct task_struct *p, unsigned long *flags)
 	__acquires(p->pi_lock)
 {
 	raw_spin_lock_irqsave(&p->pi_lock, *flags);
@@ -427,8 +426,7 @@ static inline struct rq
 	return task_rq(p);
 }
 
-static inline struct rq
-*time_task_grq_lock(struct task_struct *p, unsigned long *flags)
+struct rq *time_task_grq_lock(struct task_struct *p, unsigned long *flags)
 {
 	struct rq *rq = task_grq_lock(p, flags);
 
