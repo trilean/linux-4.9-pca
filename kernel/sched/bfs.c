@@ -1033,7 +1033,12 @@ void set_task_cpu(struct task_struct *p, unsigned int cpu)
 		rq->soft_affined++;
 		update_load_avg(rq);
 	}
+
+#ifdef CONFIG_THREAD_INFO_IN_TASK
+	p->cpu = cpu;
+#else
 	task_thread_info(p)->cpu = cpu;
+#endif
 }
 #endif /* CONFIG_SMP */
 
@@ -5963,7 +5968,7 @@ static void destroy_sched_domain(struct sched_domain *sd)
 	kfree(sd);
 }
 
-static void destroy_sched_domain(struct sched_domain *sd, int cpu)
+static void destroy_sched_domains_rcu(struct rcu_head *rcu)
 {
 	struct sched_domain *sd = container_of(rcu, struct sched_domain, rcu);
 
@@ -6007,7 +6012,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 			 */
 			if (parent->flags & SD_PREFER_SIBLING)
 				tmp->flags |= SD_PREFER_SIBLING;
-			destroy_sched_domain(parent, cpu);
+			destroy_sched_domain(parent);
 		} else
 			tmp = tmp->parent;
 	}
@@ -6015,7 +6020,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 	if (sd && sd_degenerate(sd)) {
 		tmp = sd;
 		sd = sd->parent;
-		destroy_sched_domain(tmp, cpu);
+		destroy_sched_domain(tmp);
 		if (sd)
 			sd->child = NULL;
 	}
@@ -6025,7 +6030,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 	rq_attach_root(rq, rd);
 	tmp = rq->sd;
 	rcu_assign_pointer(rq->sd, sd);
-	destroy_sched_domains(tmp, cpu);
+	destroy_sched_domains(cpu);
 }
 
 /* Setup the mask of cpus configured for isolated domains */
@@ -6143,12 +6148,6 @@ static void claim_allocations(int cpu, struct sched_domain *sd)
 
 	if (atomic_read(&(*per_cpu_ptr(sdd->sds, cpu))->ref))
 		*per_cpu_ptr(sdd->sds, cpu) = NULL;
-
-	if (atomic_read(&(*per_cpu_ptr(sdd->sg, cpu))->ref))
-		*per_cpu_ptr(sdd->sg, cpu) = NULL;
-
-	if (atomic_read(&(*per_cpu_ptr(sdd->sgc, cpu))->ref))
-		*per_cpu_ptr(sdd->sgc, cpu) = NULL;
 }
 
 #ifdef CONFIG_NUMA
@@ -6645,7 +6644,6 @@ static int build_sched_domains(const struct cpumask *cpu_map,
 	enum s_alloc alloc_state;
 	struct sched_domain *sd;
 	struct s_data d;
-	struct rq *rq = NULL;
 	int i, ret = -ENOMEM;
 
 	alloc_state = __visit_domain_allocation_hell(&d, cpu_map);
@@ -6681,21 +6679,11 @@ static int build_sched_domains(const struct cpumask *cpu_map,
 	/* Attach the domains */
 	rcu_read_lock();
 	for_each_cpu(i, cpu_map) {
-		rq = cpu_rq(i);
 		sd = *per_cpu_ptr(d.sd, i);
-
-		/* Use READ_ONCE()/WRITE_ONCE() to avoid load/store tearing: */
-		if (rq->cpu_capacity_orig > READ_ONCE(d.rd->max_cpu_capacity))
-			WRITE_ONCE(d.rd->max_cpu_capacity, rq->cpu_capacity_orig);
 
 		cpu_attach_domain(sd, d.rd, i);
 	}
 	rcu_read_unlock();
-
-	if (rq && sched_debug_enabled) {
-		pr_info("span: %*pbl (max cpu_capacity = %lu)\n",
-			cpumask_pr_args(cpu_map), rq->rd->max_cpu_capacity);
-	}
 
 	ret = 0;
 error:

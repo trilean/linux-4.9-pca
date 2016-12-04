@@ -1,9 +1,16 @@
 #include <linux/sched.h>
 #include <linux/cpuidle.h>
 #include <linux/stop_machine.h>
+#include <linux/u64_stats_sync.h>
 
 #ifndef BFS_SCHED_H
 #define BFS_SCHED_H
+
+#ifdef CONFIG_SCHED_DEBUG
+#define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
+#else
+#define SCHED_WARN_ON(x)	((void)(x))
+#endif
 
 /*
  * This is the main, per-CPU runqueue data structure.
@@ -135,6 +142,8 @@ extern struct static_key_false sched_schedstats;
 	rcu_dereference_check((p), \
 			      lockdep_is_held(&sched_domains_mutex))
 
+#define for_each_lower_domain(sd) for (; sd; sd = sd->child)
+
 /*
  * The domain tree (rq->sd) is protected by RCU's quiescent state transition.
  * See detach_destroy_domains: synchronize_sched for details.
@@ -179,7 +188,7 @@ static inline void idle_set_state(struct rq *rq,
 
 static inline struct cpuidle_state *idle_get_state(struct rq *rq)
 {
-	WARN_ON(!rcu_read_lock_held());
+	SCHED_WARN_ON(!rcu_read_lock_held());
 	return rq->idle_state;
 }
 #else
