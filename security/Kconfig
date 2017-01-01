@@ -62,6 +62,7 @@ config PAX_EI_PAX
 
 config PAX_PT_PAX_FLAGS
 	bool 'Use ELF program header marking'
+	default n
 	help
 	  Enabling this option will allow you to control PaX features on
 	  a per executable basis via the 'paxctl' utility available at
@@ -80,7 +81,11 @@ config PAX_PT_PAX_FLAGS
 	  If you enable none of the marking options then all applications
 	  will run with PaX enabled on them by default.
 
+	  Note for Gentoo: PT_PAX_FLAGS has been deprecated in Gentoo.  Enable
+	  this only for legacy systems.
+
 config PAX_XATTR_PAX_FLAGS
+	default y
 	bool 'Use filesystem extended attributes marking'
 	select CIFS_XATTR if CIFS
 	select EXT2_FS_XATTR if EXT2_FS
@@ -109,6 +114,9 @@ config PAX_XATTR_PAX_FLAGS
 
 	  If you enable none of the marking options then all applications
 	  will run with PaX enabled on them by default.
+
+	  Note for Gentoo: XATTR_PAX_FLAGS is now the default in Gentoo.  Do
+	  not disable this unless you know what you're doing.
 
 choice
 	prompt 'MAC system integration'
