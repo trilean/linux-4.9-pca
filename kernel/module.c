@@ -2982,7 +2982,7 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
 	int err;
 
 #if defined(CONFIG_PAX_KERNEXEC_PLUGIN_METHOD_OR) || defined(CONFIG_PAX_RAP)
-	if (!license || !license_is_gpl_compatible(license)) {
+	if (!license || (!license_is_gpl_compatible(license) && strcmp(license, "CDDL") != 0)) {
 		pr_err("%s: module is not compatible with the KERNEXEC 'or' method and RAP\n", mod->name);
 		return -ENOEXEC;
 	}
