@@ -18,6 +18,7 @@
 #include <asm/alternative.h>
 #include <asm/pgtable.h>
 #include <asm/cacheflush.h>
+#include <asm/sections.h>
 
 void __init check_bugs(void)
 {
@@ -45,6 +46,7 @@ void __init check_bugs(void)
 
 	fpu__init_check_bugs();
 #else /* CONFIG_X86_64 */
+	set_memory_nx((unsigned long)_sinitdata, (__START_KERNEL_map + KERNEL_IMAGE_SIZE - (unsigned long)_sinitdata) >> PAGE_SHIFT);
 	alternative_instructions();
 
 	/*
